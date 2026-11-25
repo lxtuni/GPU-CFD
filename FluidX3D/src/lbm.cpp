@@ -133,7 +133,7 @@ void LBM_Domain::allocate(Device& device) {
 	object_sum = Memory<float>(device, 1u, 4u); // x, y, z, cell count
 	kernel_stream_collide.add_parameters(F);
 	kernel_update_fields.add_parameters(F);
-	kernel_update_force_field = Kernel(device, N, "update_force_field", fi, flags, t, F);
+	kernel_update_force_field = Kernel(device, N, "update_force_field", fi, flags, t, F, u);
 	kernel_reset_force_field = Kernel(device, N, "reset_force_field", F);
 	kernel_object_center_of_mass = Kernel(device, N, "object_center_of_mass", flags, (uchar)0u, object_sum);
 	kernel_object_force = Kernel(device, N, "object_force", F, flags, (uchar)0u, object_sum);

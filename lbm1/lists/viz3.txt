@@ -1,0 +1,2 @@
+# 和 OpenFOAM TND1 同一工况、同一切面（y = 0）、同一批时刻（1.0–2.0 s，每 0.0125 s）的速度切面；只存数据，不出渲染帧
+RTS LBM1_KIN=kin_tand_fore.csv LBM1_KIN2=kin_tand_hind.csv LBM1_DY=0.016 LBM1_DX=0.0006 LBM1_TEND=2.0 LBM1_SLICE_DT=0.0125 LBM1_SLICE_T0=1.0 LBM1_SLICE_Y=0.0

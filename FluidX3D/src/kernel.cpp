@@ -1929,7 +1929,7 @@ string opencl_c_container() { return R( // ########################## begin of O
 } // update_fields()
 
 )+"#ifdef FORCE_FIELD"+R(
-)+R(kernel void update_force_field(const global fpxx* fi, const global uchar* flags, const ulong t, global float* F) { // calculate force from the fluid on solid boundaries from fi directly
+)+R(kernel void update_force_field(const global fpxx* fi, const global uchar* flags, const ulong t, global float* F, const global float* u) { // LBM1 patch: link-wise momentum exchange with moving-wall term
 	const uxx n = get_global_id(0); // n = x+(y+z*Ny)*Nx
 	if(n>=(uxx)def_N||is_halo(n)) return; // don't execute update_force_field() on halo
 	if((flags[n]&TYPE_BO)!=TYPE_S) return; // only continue for solid boundary cells
@@ -1937,9 +1937,15 @@ string opencl_c_container() { return R( // ########################## begin of O
 	neighbors(n, j); // calculate neighbor indices
 	float fhn[def_velocity_set]; // local DDFs
 	load_f(n, fhn, fi, j, t); // perform streaming (part 2)
-	float Fb=1.0f, fx=0.0f, fy=0.0f, fz=0.0f;
-	calculate_rho_u(fhn, &Fb, &fx, &fy, &fz); // abuse calculate_rho_u() method for calculating force
-	store3(F, n, 2.0f*Fb*(float3)(fx, fy, fz)); // 2x because fi are reflected on solid boundary cells (bounced-back)
+	const float3 uw = load3(u, n);
+	float3 Fn = (float3)(0.0f, 0.0f, 0.0f);
+	for(uint i=1u; i<def_velocity_set; i+=2u) {
+		const float3 ci = (float3)((float)c(i), (float)c(def_velocity_set+i), (float)c(2u*def_velocity_set+i));
+		const float wu = 6.0f*w(i)*dot(ci, uw);
+		if((flags[j[i+1u]]&TYPE_BO)!=TYPE_S) Fn += (2.0f*fhn[i]-wu)*ci;
+		if((flags[j[i]]&TYPE_BO)!=TYPE_S) Fn -= (2.0f*fhn[i+1u]+wu)*ci;
+	}
+	store3(F, n, Fn);
 } // update_force_field()
 )+R(kernel void reset_force_field(global float* F) { // reset force field
 	const uxx n = get_global_id(0); // n = x+(y+z*Ny)*Nx
@@ -2363,7 +2369,7 @@ string opencl_c_container() { return R( // ########################## begin of O
 		} else { // cell is outside of mesh geometry
 			if((flagsn&TYPE_BO)==TYPE_S&&(flagsn&TYPE_XY)==(flag&TYPE_XY)) { // cell was previously marked solid
 				const float3 un = load3(u, n); // load previous velocity
-				if(un.x==u_set.x&&un.y==u_set.y&&un.z==u_set.z) { // velocity matched: cell belonged to the currently voxelized geometry
+				if(true) { /* LBM1 patch: release every cell with this X/Y marker that the mesh has left */ // velocity matched: cell belonged to the currently voxelized geometry
 					if(set_u) { // reconstruct DDFs when solid cell is converted to fluid
 						uxx j[def_velocity_set]; // neighbor indices
 						neighbors(n, j); // calculate neighbor indices
