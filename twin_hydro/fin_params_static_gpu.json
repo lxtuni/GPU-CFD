@@ -1,0 +1,121 @@
+{
+ "model": "platemodel.FinModel, same quasi-steady form as fin_params_flapping_openfoam.json; only these coefficients change when the fin is not driven",
+ "source": "fit to GPU-CFD (this repository) of one fixed fin in uniform inflow 0.10 m/s, chord angle -105..45 deg; fin area 11.2 cm^2",
+ "params_static": {
+  "Kp": 0.7166,
+  "Kv": 1.1919,
+  "CS": -0.042,
+  "CF": 0.188
+ },
+ "params_flapping_for_comparison": {
+  "Kp": 1.3431,
+  "Kv": 2.4011,
+  "CS": -1.094,
+  "CF": 0.0829
+ },
+ "spanwise_drag_CB": 0.13,
+ "switch": {
+  "w1_rad_s": 0.15,
+  "w2_rad_s": 0.4,
+  "tau_s": 0.1,
+  "rule": "per fin, decaying peak-hold of the servo link angular speed relative to the hull (time constant tau); <= w1: static coefficients plus spanwise drag; >= w2: flapping coefficients; linear blend in between"
+ },
+ "fit_rms_force_coefficient": {
+  "static_params": 0.0391,
+  "flapping_params": 0.7843,
+  "max_gpu_force_coefficient": 1.27
+ },
+ "gpu_static_curve": {
+  "-105": {
+   "Cd": 1.2,
+   "Cl": -0.198
+  },
+  "-90": {
+   "Cd": 1.27,
+   "Cl": 0.086
+  },
+  "-75": {
+   "Cd": 1.221,
+   "Cl": 0.347
+  },
+  "-60": {
+   "Cd": 1.044,
+   "Cl": 0.57
+  },
+  "-45": {
+   "Cd": 0.745,
+   "Cl": 0.597
+  },
+  "-30": {
+   "Cd": 0.453,
+   "Cl": 0.461
+  },
+  "-15": {
+   "Cd": 0.247,
+   "Cl": 0.197
+  },
+  "0": {
+   "Cd": 0.167,
+   "Cl": -0.002
+  },
+  "15": {
+   "Cd": 0.249,
+   "Cl": -0.194
+  },
+  "30": {
+   "Cd": 0.447,
+   "Cl": -0.457
+  },
+  "45": {
+   "Cd": 0.779,
+   "Cl": -0.643
+  }
+ },
+ "twin_flapping_params_curve": {
+  "-105": {
+   "Cd": 2.23,
+   "Cl": -1.632
+  },
+  "-90": {
+   "Cd": 2.401,
+   "Cl": 1.094
+  },
+  "-75": {
+   "Cd": 2.23,
+   "Cl": 1.632
+  },
+  "-60": {
+   "Cd": 1.674,
+   "Cl": 1.866
+  },
+  "-45": {
+   "Cd": 0.978,
+   "Cl": 1.669
+  },
+  "-30": {
+   "Cd": 0.416,
+   "Cl": 1.124
+  },
+  "-15": {
+   "Cd": 0.135,
+   "Cl": 0.478
+  },
+  "0": {
+   "Cd": 0.083,
+   "Cl": 0.0
+  },
+  "15": {
+   "Cd": 0.135,
+   "Cl": -0.478
+  },
+  "30": {
+   "Cd": 0.416,
+   "Cl": -1.124
+  },
+  "45": {
+   "Cd": 0.978,
+   "Cl": -1.669
+  }
+ },
+ "note": "angle key = angle between chord line and inflow in degrees, -90 = fin broadside to the flow; GPU-CFD forces are about 25 % below OpenFOAM in flapping cases, not corrected here"
+}

@@ -41,9 +41,48 @@ six faces.
 | `lbm1/viz_*.py` | turn frames and slices into GIFs, videos and comparison plots |
 | `lbm1/lists/` | case lists used for our runs (one case per line: name and environment variables) |
 | `example/` | one fin blade (`A2_blade_cfd.stl`) and one motion table to try the code |
+| `twin_hydro/` | fin hydrodynamic parameters of the MuJoCo simulator, before and after the GPU-CFD correction |
 
 The scripts in `lbm1/` assume the layout `~/lbm1/{FluidX3D,code,data,out}` of our server;
 adjust the paths at the top of each script.
+
+## Simulator fin parameters corrected with this CFD
+
+The MuJoCo simulator ("twin") applies fin forces with a quasi-steady plate model
+(normal force with attached-flow term `Kp` and cross-flow term `Kv`, chordwise force `CS`,
+friction `CF`, 3 chordwise stations, rotational circulation, added mass). Its coefficients
+were fitted to OpenFOAM cases of a flapping fin. GPU-CFD showed that they are fine while the
+fin flaps but too large when the fin is held still: broadside to the flow the simulator gave
+2.0-2.3 times the CFD drag, and no spanwise force at all.
+
+What changed (files in `twin_hydro/`):
+
+| Item | Before (flapping, OpenFOAM fit) | After, fin not driven (GPU-CFD fit) |
+|---|---|---|
+| `Kp` attached-flow normal force | 1.3431 | 0.7166 |
+| `Kv` cross-flow normal force | 2.4011 | 1.1919 |
+| `CS` chordwise force | -1.094 | -0.042 |
+| `CF` friction | 0.0829 | 0.188 |
+| spanwise drag `CB` | none (spanwise flow ignored) | 0.13 |
+| RMS error vs. GPU static Cd/Cl curve | 0.784 | 0.039 (3.1 % of the peak coefficient 1.27) |
+
+- `fin_params_flapping_openfoam.json`: the original coefficients, unchanged, with their fit
+  statistics; still used whenever the fin flaps.
+- `fin_params_static_gpu.json`: the new coefficients, the switching rule, and the GPU static
+  drag and lift curve (one fixed fin, inflow 0.10 m/s, chord angle -105 to 45 deg) next to
+  the curve of the old coefficients.
+- `fin_static_patch.py`: adds the switch `FIN_STATIC=1` (off by default) to the simulator's
+  fin force code. Per fin, the angular speed of the driving servo link relative to the hull
+  is peak-held with a 0.1 s decay; at or below 0.15 rad/s the static coefficients plus
+  spanwise drag are used, at or above 0.4 rad/s the original ones, linear in between.
+  With the switch off the simulator is bit-identical to before. The same rule is applied to
+  the foot-brace plates (not checked against CFD). The simulator code itself is not part of
+  this repository; the patch is included to document the change. Override the values with
+  `FIN_STATIC_P="Kp,Kv,CS,CF,CB,w1,w2,tau"`.
+
+Limits: one fin and one inflow speed; slow strokes (half frequency, 1.5-2.6 times too large)
+are not corrected; GPU-CFD absolute forces are about 25 % below OpenFOAM in flapping cases
+and this offset is not removed from the static fit.
 
 ## Build and run the example
 
