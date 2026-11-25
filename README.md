@@ -144,14 +144,6 @@ rotation relative to the start pose [deg]. The rendering variant adds
 用显卡上的格子玻尔兹曼法，算给定运动（俯仰加升沉、速度不均匀）的刚性尾鳍，单片鳍或前后两片鳍，
 输出随时间变化的鳍上受力。用来拿 CFD 核对机器人仿真器（孪生）里的准定常鳍力模型。
 
-> **本仓库包含修改过的 FluidX3D。**
-> FluidX3D 的作者是 Dr. Moritz Lehmann：https://github.com/ProjectPhysX/FluidX3D 。
-> 第一个提交是未改动的 FluidX3D v3.9（commit cc40a38），之后的全部改动列在
-> [`FluidX3D/MODIFIED.md`](FluidX3D/MODIFIED.md)。
-> 适用 FluidX3D 的许可证（[`FluidX3D/LICENSE.md`](FluidX3D/LICENSE.md)）：只许非商业、非军事用途，
-> 不许用源码训练 AI 模型，发表论文须引用 [FluidX3D 的参考文献](https://github.com/ProjectPhysX/FluidX3D#references)。
-
-## 改了什么、为什么改
 
 原版 FluidX3D 处理匀速转动的固体没有问题。尾鳍做变速的俯仰和升沉时出现两个问题，由
 `lbm1/lbm1_patch.py` 修正：
